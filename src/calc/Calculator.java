@@ -71,6 +71,13 @@ class Calculator {
 
 
 
+    private boolean isNumber(String str) {
+        for (char i : str.toCharArray()) {
+            if (!Character.isDigit(i))
+                return false;
+        }
+        return true;
+    }
 
     int getPrecedence(String op) {
         if ("(".contains(op)) {
