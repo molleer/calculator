@@ -67,9 +67,37 @@ class Calculator {
 
 
 
+    public List<String> infix2Postfix(List<String> infix) {
+        ArrayDeque<String> operatorStack = new ArrayDeque<>();
+        List<String> postfix = new ArrayList<>();
+
+        for (String i : infix) {
+            if (isNumber(i)) {
+                postfix.add(i);
+            } else if (i.equals(")")) {
+                //Adds all operators to postfix until it reaches "("
+                while (!operatorStack.peek().equals("("))
+                    postfix.add(operatorStack.pop());
+
+                //Removes the "(" from infix
+                operatorStack.pop();
+            } else { // if i is an operator
+
+                //remove all more valued operators from the stack
+                while (!i.equals("(") && !operatorStack.isEmpty() && getPrecedence(i) < getPrecedence(operatorStack.peek())) {
+                    postfix.add(operatorStack.pop());
+                }
+                operatorStack.push(i);
+            }
+        }
+
+        //Adds all remaining operators to postfix
+        for (String i : operatorStack)
+            postfix.add(i);
 
 
-
+        return postfix;
+    }
 
     private boolean isNumber(String str) {
         for (char i : str.toCharArray()) {
