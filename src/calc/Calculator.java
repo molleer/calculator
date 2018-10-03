@@ -73,7 +73,9 @@ class Calculator {
 
 
     int getPrecedence(String op) {
-        if ("+-".contains(op)) {
+        if ("(".contains(op)) {
+            return 1;
+        } else if ("+-".contains(op)) {
             return 2;
         } else if ("*/".contains(op)) {
             return 3;
