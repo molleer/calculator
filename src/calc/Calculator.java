@@ -155,4 +155,28 @@ class Calculator {
 
         return tokens;
     }
+
+    public double evalPostfix(List<String> tokens) {
+
+        ArrayDeque<Double> decue = new ArrayDeque<>();
+        double tmp;
+
+        for(String token: tokens) {
+            if (!"*+-/^".contains(token)) { // It is a number
+                decue.push(Double.valueOf(token));
+            } else { // Operator
+                if (decue.size() < 2) { // Dont crash
+                    //throw IllegalArgumentException("Faulty prefix");
+                    System.err.println("Faulty prefix.");
+                    exit(-1);
+                }
+
+                tmp = decue.pop();
+                decue.push(applyOperator(token, tmp, decue.pop()));
+
+            }
+        }
+
+        return decue.pop();
+    }
 }
