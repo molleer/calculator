@@ -104,4 +104,18 @@ class Calculator {
 
     // TODO Methods to tokenize
 
+    public static List<String> tokenize(String str) {
+        List<String> tokens = new ArrayList<>();
+
+        str = str.replace(" ", "");
+
+        for (char i : str.toCharArray()) {
+            if (tokens.isEmpty() || "+-*^/()".contains(tokens.get(tokens.size() - 1)) || "+-*^/()".contains("" + i))
+                tokens.add("");
+
+            tokens.set(tokens.size() - 1, tokens.get(tokens.size() - 1) + i);
+        }
+
+        return tokens;
+    }
 }
