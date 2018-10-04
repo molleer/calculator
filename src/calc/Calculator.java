@@ -28,21 +28,21 @@ class Calculator {
     final static String OPERATORS = "+-*/^";
 
     // Method used in REPL
-    double eval(String expr) {
+    public double eval(String expr) {
         if (expr.length() == 0) {
             return NaN;
         }
-        // TODO List<String> tokens = tokenize(expr);
-        // TODO List<String> postfix = infix2Postfix(tokens);
-        // TODO double result = evalPostfix(postfix);
-        return 0; // result;
+        List<String> tokens = tokenize(expr);
+        List<String> postfix = infix2Postfix(tokens);
+        double result = evalPostfix(postfix);
+        return result; // result;
     }
 
     // ------  Evaluate RPN expression -------------------
 
     // TODO Eval methods
 
-    double applyOperator(String op, double d1, double d2) {
+    static double applyOperator(String op, double d1, double d2) {
         switch (op) {
             case "+":
                 return d1 + d2;
@@ -76,17 +76,23 @@ class Calculator {
                 postfix.add(i);
             } else if (i.equals(")")) {
                 //Adds all operators to postfix until it reaches "("
-                while (!operatorStack.peek().equals("("))
+                while (!operatorStack.isEmpty() && !operatorStack.peek().equals("(")) {
                     postfix.add(operatorStack.pop());
+                }
+
+                if (operatorStack.isEmpty()) {
+                    throw new IllegalArgumentException(MISSING_OPERATOR);
+                }
 
                 //Removes the "(" from infix
                 operatorStack.pop();
             } else { // if i is an operator
 
                 //remove all more valued operators from the stack
-                while (!i.equals("(") && !operatorStack.isEmpty() && getPrecedence(i) < getPrecedence(operatorStack.peek())) {
-                    postfix.add(operatorStack.pop());
-                }
+
+                if (!i.equals("(") && !operatorStack.isEmpty() && !operatorStack.peek().equals("("))
+                    popUnitlValue(getPrecedence(i), operatorStack, postfix, getAssociativity(operatorStack.peek()));
+
                 operatorStack.push(i);
             }
         }
@@ -97,6 +103,12 @@ class Calculator {
 
 
         return postfix;
+    }
+
+    private void popUnitlValue(int precedence1, ArrayDeque<String> stack, List<String> postfix, Assoc assoc) {
+        while (!stack.isEmpty() && precedence1 + (assoc.equals(Assoc.RIGHT) ? 1 : 0) <= getPrecedence(stack.peek())) {
+            postfix.add(stack.pop());
+        }
     }
 
     private boolean isNumber(String str) {
@@ -143,7 +155,7 @@ class Calculator {
 
     public static List<String> tokenize(String str) {
         List<String> tokens = new ArrayList<>();
-
+        operatorCheck(str);
         str = str.replace(" ", "");
 
         for (char i : str.toCharArray()) {
@@ -156,27 +168,51 @@ class Calculator {
         return tokens;
     }
 
-    public double evalPostfix(List<String> tokens) {
+    private static void operatorCheck(String str) {
 
-        ArrayDeque<Double> decue = new ArrayDeque<>();
+        //Checks if ex:"4 34" exist, no operator between numbers
+        String[] splitStr = str.split(" ");
+
+        if (splitStr.length >= 2)
+            for (int i = 0; i < (splitStr.length - 1); i++) {
+                if (!splitStr[i].equals("") && !splitStr[i + 1].equals(""))
+                    if (Character.isDigit(splitStr[i].charAt(splitStr[i].length() - 1)) && Character.isDigit(splitStr[i + 1].charAt(0)))
+                        throw new IllegalArgumentException(MISSING_OPERATOR);
+            }
+
+        //Checks parenthesis
+        int nPar = 0;
+        for (char i : str.toCharArray())
+            if (i == '(') nPar++;
+            else if (i == ')') {
+                nPar--;
+                if (nPar < 0) break;
+            }
+        if (nPar != 0)
+            throw new IllegalArgumentException(MISSING_OPERATOR);
+
+    }
+
+    public static double evalPostfix(List<String> tokens) {
+
+        ArrayDeque<Double> tempValues = new ArrayDeque<>();
         double tmp;
 
-        for(String token: tokens) {
+        for (String token : tokens) {
             if (!"*+-/^".contains(token)) { // It is a number
-                decue.push(Double.valueOf(token));
+                tempValues.push(Double.valueOf(token));
             } else { // Operator
-                if (decue.size() < 2) { // Dont crash
-                    //throw IllegalArgumentException("Faulty prefix");
-                    System.err.println("Faulty prefix.");
-                    exit(-1);
+                if (tempValues.size() < 2) { // Don´t crash
+                    throw new IllegalArgumentException(MISSING_OPERAND);
                 }
 
-                tmp = decue.pop();
-                decue.push(applyOperator(token, tmp, decue.pop()));
+                tmp = tempValues.pop();
+                tempValues.push(applyOperator(token, tmp, tempValues.pop()));
 
             }
         }
 
-        return decue.pop();
+
+        return tempValues.pop();
     }
 }
