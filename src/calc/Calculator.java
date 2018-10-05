@@ -91,7 +91,7 @@ class Calculator {
                 //remove all more valued operators from the stack
 
                 if (!i.equals("(") && !operatorStack.isEmpty() && !operatorStack.peek().equals("("))
-                    popUnitlValue(getPrecedence(i), operatorStack, postfix, getAssociativity(operatorStack.peek()));
+                    popUntilValue(getPrecedence(i), operatorStack, postfix, getAssociativity(operatorStack.peek()));
 
                 operatorStack.push(i);
             }
@@ -105,8 +105,8 @@ class Calculator {
         return postfix;
     }
 
-    private void popUnitlValue(int precedence1, ArrayDeque<String> stack, List<String> postfix, Assoc assoc) {
-        while (!stack.isEmpty() && precedence1 + (assoc.equals(Assoc.RIGHT) ? 1 : 0) <= getPrecedence(stack.peek())) {
+    private void popUntilValue(int precedence, ArrayDeque<String> stack, List<String> postfix, Assoc assoc) {
+        while (!stack.isEmpty() && precedence + (assoc.equals(Assoc.RIGHT) ? 1 : 0) <= getPrecedence(stack.peek())) {
             postfix.add(stack.pop());
         }
     }
@@ -170,15 +170,13 @@ class Calculator {
 
     private static void operatorCheck(String str) {
 
-        //Checks if ex:"4 34" exist, no operator between numbers
+        //Checks if ex:"4 34" exist, no operator between numbers. If so, throw exception
         String[] splitStr = str.split(" ");
 
         if (splitStr.length >= 2)
-            for (int i = 0; i < (splitStr.length - 1); i++) {
-                if (!splitStr[i].equals("") && !splitStr[i + 1].equals(""))
-                    if (Character.isDigit(splitStr[i].charAt(splitStr[i].length() - 1)) && Character.isDigit(splitStr[i + 1].charAt(0)))
-                        throw new IllegalArgumentException(MISSING_OPERATOR);
-            }
+            for (int i = 0; i < (splitStr.length - 1); i++)
+                missingOperator(splitStr[i], splitStr[i + 1]);
+
 
         //Checks parenthesis
         int nPar = 0;
@@ -191,6 +189,12 @@ class Calculator {
         if (nPar != 0)
             throw new IllegalArgumentException(MISSING_OPERATOR);
 
+    }
+
+    private static void missingOperator(String str1, String str2) {
+        if (!str1.equals("") && !str2.equals(""))
+            if (Character.isDigit(str1.charAt(str1.length() - 1)) && Character.isDigit(str2.charAt(0)))
+                throw new IllegalArgumentException(MISSING_OPERATOR);
     }
 
     public static double evalPostfix(List<String> tokens) {
